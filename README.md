@@ -1,4 +1,6 @@
-## Welcome to GitHub Pages
+## Welcome to Rayofsunshinasha's GitHub Pages
+
+I hope to document and share the projects I do with folks. 
 
 You can use the [editor on GitHub](https://github.com/rayofsunshinesha/rayofsunshinesha.github.io/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
 
