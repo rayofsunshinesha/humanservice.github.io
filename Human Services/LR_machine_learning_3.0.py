@@ -26,25 +26,19 @@ sns.set_style("white")
 
 # ###load data
 
-# In[3]:
-
 # set up sqlalchemy engine
 
 def load_data(test_end_year):
-    #engine = create_engine('postgresql://10.10.2.10/appliedda')
-    #query = """SELECT * FROM c6.partial_evaluate WHERE (oldSpell_end>='2010-05-31'
-        #AND oldSpell_end<='{test_end_year}-12-31');""".format(test_end_year=test_end_year)
-    # We can look at column names within tables:
-    print test_end_year
-    df=pd.read_csv('./table_{}.csv'.format(test_end_year))
-    #for chunk in pd.read_sql(query,engine,chunksize=5000):
-    #    df=df.append(chunk)
-    #df=pd.read_sql(query,engine)
+    engine = create_engine('postgresql://10.10.2.10/appliedda')
+    query = """SELECT * FROM c6.partial_evaluate WHERE (oldSpell_end>='2010-05-31'
+        AND oldSpell_end<='{test_end_year}-12-31');""".format(test_end_year=test_end_year)
+    for chunk in pd.read_sql(query,engine,chunksize=5000):
+        df=df.append(chunk)
+    df=pd.read_sql(query,engine)
     print(df.shape)
     return df
 
 def create_dummies(localdf):
-# In[7]:
 
 # list of variables that need to be turn to dummies: 'quarter_t', 'edlevel','workexp','district',
 #'race','sex','rootrace','foreignbn'
@@ -171,10 +165,6 @@ def test_train_split_process_scale(test_end_year,df,sel_label,sel_features):
     
    
     return X_train,X_test,y_train,y_test
-# In[8]:
-
-
-#df[(df['oldspell_end'] >=datetime.date(2010,5,31)) & (df['oldspell_end'] <=datetime.date(2010,12,31))]
 
 # Accuracy is the ratio of the correct predictions (both positive and negative) to all predictions. 
 # $$ Accuracy = \frac{TP+TN}{TP+TN+FP+FN} $$
@@ -190,8 +180,6 @@ def test_train_split_process_scale(test_end_year,df,sel_label,sel_features):
 # $$ Recall = \frac{TP}{TP+FN} $$
 # 
 # By selecting different thresholds we can vary and tune the precision and recall of a given classifier. A conservative classifier (threshold 0.99) will classify a case as 1 only when it is *very sure*, leading to high precision. On the other end of the spectrum, a low threshold (e.g. 0.01) will lead to higher recall.
-
-# In[11]:
 
 def plot_precision_recall(y_true,y_score):
     """
@@ -213,12 +201,6 @@ def plot_precision_recall(y_true,y_score):
     plt.show()
     plt.clf()
 
-
-# plot_precision_recall(expected, y_scores)
-
-# ###precision and recall at k%
-
-# In[12]:
 
 def plot_precision_recall_n(y_true, y_prob, model_name,fname):
     """
@@ -259,23 +241,12 @@ def plot_precision_recall_n(y_true, y_prob, model_name,fname):
     plt.savefig(fname)
 
 
-# In[13]:
-
 def precision_at_k(y_true, y_scores,k):
     
     threshold = np.sort(y_scores)[::-1][int(k*len(y_scores))]
     y_pred = np.asarray([1 if i >= threshold else 0 for i in y_scores ])
     return precision_score(y_true, y_pred)
 
-
-# plot_precision_recall_n(expected,y_scores, 'LR')
-
-# p_at_1 = precision_at_k(expected,y_scores, 0.01)
-# print('Precision at 1%: {:.2f}'.format(p_at_1))
-
-# ### magic loops
-
-# In[14]:
 
 def define_clfs_params(grid_size):
     clfs={'RF': RandomForestClassifier(n_estimators=50, n_jobs=-1),
@@ -308,23 +279,16 @@ def define_clfs_params(grid_size):
         return clfs,small_grid
 
 
-# In[15]:
-
 def joint_sort_descending(l1,l2):
     #l1,l2 have to be numpy arrays
     idx=np.argsort(l1)[::-1]
     return l1[idx],l2[idx]
-
-
-# In[16]:
 
 def generate_binary_at_k(y_scores,k):
     cutoff_index=int(len(y_scores)*(k/100.0))
     test_predictions_binary=[1 if x<cutoff_index else 0 for x in range(len(y_scores))]
     return test_predictions_binary
 
-
-# In[17]:
 
 def precision_at_k(y_true, y_scores,k):
     
@@ -333,8 +297,6 @@ def precision_at_k(y_true, y_scores,k):
     precision=precision_score(y_true,preds_at_k)
     return precision
 
-
-# In[18]:
 
 def clf_loop(models_to_run, clfs,grid,X_train,X_test,y_train,y_test,test_end_year,label):
 
@@ -384,8 +346,6 @@ def clf_loop(models_to_run, clfs,grid,X_train,X_test,y_train,y_test,test_end_yea
     return results_df
 
 
-# In[19]:
-
 def main():
     test_end_year = int(sys.argv[1])
     print(test_end_year)
@@ -420,19 +380,11 @@ def main():
     #master_results_df.to_csv('results.csv')
     
 
-
-# In[ ]:
-
 NOTEBOOK=0
-
-
-# In[ ]:
 
 ##if _name_=='__main__':
 main()
 
-
-# In[ ]:
 
 
 
