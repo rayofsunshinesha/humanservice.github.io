@@ -2,12 +2,12 @@
 
 This project evaluate self-suffiency measurement that Human Services current use and develop machine learning models to predict risk of return for IL SNAP and TANF recipients and extract a better metrics for self-suffiency measurement. 
 
-### 1: Evaluation
+### Part I Evaluation
 
 - Use spells data to look in the future return rate and speed
 - Link wage records and spell data to explore income and type of jobs at the time both before and after a spell is canceled 
 
-### 1: Machine Learning Models
+### Part II Machine Learning Models
 
 - Predict the risk of return at a moment spell is canceled 
 - Evaluate models based on different project goal
