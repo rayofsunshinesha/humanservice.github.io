@@ -7,6 +7,8 @@
 
 * Before we start
 
+Self-suffiency measurement is cased canceled due to eaarning
+
 ** Case canceled due to earning 
 
 - the self-sufficiency measure that human services current use to evaluate how well are spell recipents doing. 
@@ -18,7 +20,7 @@
 - head of house hold spell information include caseid (primary key), chapen hall id, and spell start and end date.
 - the goal is link above two and tag the spell with a 0/1 case canceled due to earning column.
 
-* The food inspections data set
+* The data set
 
 The data represents the inspections made in different facilities in
 the area of Chicago.
@@ -85,18 +87,6 @@ go merge with idhs.hh_indcase_spells spell to identify the specicfic spell that 
 tag the record of the smallest gap days btw transaction_date & spell.end_date 
 if the gap is more than 60 days, I make the judgement that the spell is not related to the transaction_date.
 
-The data represents the inspections made in different facilities in
-the area of Chicago.
-
-There are different types of inspections, different types of
-facilities and different results (or outcomes) of that
-inspections. Also the data contains the
-types of violations and text descriptions in free form about the
-violations.
-
-Obviously, we have spatio-temporal data (i.e. the inspections happen
-in a given time at some place).
-
 * Some basic tasks in a data analysis project
 
 - Cleaning the data
@@ -104,3 +94,44 @@ in a given time at some place).
 - Create new /FeatureS/
 - Create new views of the data
 - Answering analytical questions
+
+* The data set
+
+The data set include head of house hold spells info.
+
+** Goal: file the earliest return spell given each ending spell 
+
+We would be using the functions  =group by= AND  =order by= to find the earlist return spell
+
+
+#+BEGIN_SRC sql
+
+DROP TABLE IF EXISTS c6.return_hh_indcase_spells ;
+CREATE TABLE c6.return_hh_indcase_spells AS
+SELECT sub.recptno,sub.oldSpell_end,sub.oldBene_type,
+min(sub.ch_dpa_caseid) AS ch_dpa_caseid,avg(sub.member_age) AS member_age, min(sub.newSpell_start) as next_spell_start_date, min(sub.returnSpell_gap) as gap,
+CASE
+ WHEN min(sub.returnSpell_gap) <1000000 THEN 1
+ ELSE 0
+ END AS "return_index",
+CASE When count(*)=1 AND min(sub.returnSpell_gap)=1000000 THEN 0
+ELSE count(*)
+END AS "total_future_spell"
+FROM
+	(SELECT a.recptno, a.ch_dpa_caseid,a.benefit_type AS oldBene_type,
+	a.end_date AS oldSpell_end, 
+	AGE(a.end_date, a.birth_date )AS member_age,
+	b.benefit_type AS newBene_type,
+	b.start_date AS newSpell_start,
+	CASE
+		WHEN b.start_date IS NULL THEN 1000000
+		ELSE ( b.start_date- a.end_date ) 
+		END AS returnSpell_gap
+	FROM c6.hh_indcase_spells_nogrant a
+	LEFT JOIN c6.hh_indcase_spells_nogrant b
+	ON (a.recptno=b.recptno) AND (a.end_date<b.start_date)
+ 	order by 1,3,4,6,7
+	)sub
+group by 1,2,3
+order by 1,2,3;
+#+END_SRC
