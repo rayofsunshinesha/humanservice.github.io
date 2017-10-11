@@ -5,9 +5,6 @@
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
 
-
-* Find the earlist return spell of an ending spell 
-
 * The data set
 
 The data set is head of household spells (idhs.hh_indcase_spells). 
