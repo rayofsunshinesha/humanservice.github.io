@@ -7,14 +7,17 @@
 
 * Before we start
 
-- Wage record files are quarterly. 
 - We took spells that end in the same quarter to construct a cohort at time t. From this moment, t-1 (t minus 1 as tm1) would be 1 quarter before time t, t+1 (t plus 1 as tp1) would be 1 quarter after time t.
+- Once we have the correct quarter year, we can join the right wage record file.
 
 * The data set
 
 head of household spell table is organized by recipent id (primary key).
 There are spell type, spell starting & ending date, and some demographic about the spell receipent.
 here, I only care about the spell ending date.
+
+wage record tables are quarterly wage record. 
+It documents each job as a combination of employer and employee. It include income of each job, however, doesn't have total working hours. Therefore, we couldn't tell of a job is a full time or part time job. 
 
 ** Intermidiate data set
 - Goal: to create time stamp of quarter and year  from t-4 to t+4, given datetime of spell ending  
@@ -124,3 +127,126 @@ from
 calculate the relative year quarter given a spell ending year month
 regardless of what year month a spell end day is, month 1&2&3 are always quarter 1 at time t,
 therefore, time t-1 for those months would be quarter 4 the year before. so on and so forth.
+
+* Join the wage record
+
+** Decisions about what info to grab from wage record
+
+- num_emp_tm1: number of employers. We think the more employers a person has, the more volatile a person's employment history is.
+- wage_sum_tm1: sum of wages for a quarter. We think total income matters, since we don't know the total hours of working. 
+- wage_high_tm1: highest wage among all jobs given a quarter. We think the highest income matters, it represents the dominant income source.
+- Combine those, a person who has a career job are most likely have a very small number of employer (e.g. 1) and very similar wage sum and wage high. Because that career job form that person's whole income. A person who doesn't have a career job would have the opposite effects.
+
+** Intermidiate data set
+- Goal: attach wage record info from t-4 to t+4 given each head of household spell 
+
+We use the functions  =creat temp table= to save storage and speed up processing time
+
+#+BEGIN_SRC sql
+/*tp4*/
+CREATE TEMP TABLE wage_tp4 AS
+SELECT spells.recptno,spells.oldSpell_end,spells.year_tp4, spells.quarter_tp4, 
+	COUNT(DISTINCT(empr_no)) AS num_emp_tp4,
+	SUM(wage) AS wage_sum_tp4, MAX(wage) AS wage_high_tp4
+FROM c6.yq_return_hh_indcase_spells spells
+LEFT JOIN class2.il_wage_hh_recipient wage
+ON spells.year_tp4=wage.year AND spells.quarter_tp4=wage.quarter AND spells.recptno=wage.recptno
+GROUP BY 1,2,3,4
+ORDER BY 1,2,3,4;
+/*tp3*/
+CREATE TEMP TABLE wage_tp3 AS
+SELECT spells.recptno,spells.oldSpell_end,spells.year_tp3, spells.quarter_tp3, 
+	COUNT(DISTINCT(empr_no)) AS num_emp_tp3,
+	SUM(wage) AS wage_sum_tp3, MAX(wage) AS wage_high_tp3
+FROM c6.yq_return_hh_indcase_spells spells
+LEFT JOIN class2.il_wage_hh_recipient wage
+ON spells.year_tp3=wage.year AND spells.quarter_tp3=wage.quarter AND spells.recptno=wage.recptno
+GROUP BY 1,2,3,4
+ORDER BY 1,2,3,4;
+/*tp2*/
+CREATE TEMP TABLE wage_tp2 AS
+SELECT spells.recptno,spells.oldSpell_end,spells.year_tp2, spells.quarter_tp2, 
+	COUNT(DISTINCT(empr_no)) AS num_emp_tp2,
+	SUM(wage) AS wage_sum_tp2, MAX(wage) AS wage_high_tp2
+FROM c6.yq_return_hh_indcase_spells spells
+LEFT JOIN class2.il_wage_hh_recipient wage
+ON spells.year_tp2=wage.year AND spells.quarter_tp2=wage.quarter AND spells.recptno=wage.recptno
+GROUP BY 1,2,3,4
+ORDER BY 1,2,3,4;
+/*tp1*/
+CREATE TEMP TABLE wage_tp1 AS
+SELECT spells.recptno,spells.oldSpell_end,spells.year_tp1, spells.quarter_tp1, 
+	COUNT(DISTINCT(empr_no)) AS num_emp_tp1,
+	SUM(wage) AS wage_sum_tp1, MAX(wage) AS wage_high_tp1
+FROM c6.yq_return_hh_indcase_spells spells
+LEFT JOIN class2.il_wage_hh_recipient wage
+ON spells.year_tp1=wage.year AND spells.quarter_tp1=wage.quarter AND spells.recptno=wage.recptno
+GROUP BY 1,2,3,4
+ORDER BY 1,2,3,4;
+/*tm1*/
+CREATE TEMP TABLE wage_tm1 AS
+SELECT spells.recptno,spells.oldSpell_end,spells.year_tm1, spells.quarter_tm1, 
+	COUNT(DISTINCT(empr_no)) AS num_emp_tm1,
+	SUM(wage) AS wage_sum_tm1, MAX(wage) AS wage_high_tm1
+FROM c6.yq_return_hh_indcase_spells spells
+LEFT JOIN class2.il_wage_hh_recipient wage
+ON spells.year_tm1=wage.year AND spells.quarter_tm1=wage.quarter AND spells.recptno=wage.recptno
+GROUP BY 1,2,3,4
+ORDER BY 1,2,3,4;
+/*tm2*/
+CREATE TEMP TABLE wage_tm2 AS
+SELECT spells.recptno,spells.oldSpell_end,spells.year_tm2, spells.quarter_tm2, 
+	COUNT(DISTINCT(empr_no)) AS num_emp_tm2,
+	SUM(wage) AS wage_sum_tm2, MAX(wage) AS wage_high_tm2
+FROM c6.yq_return_hh_indcase_spells spells
+LEFT JOIN class2.il_wage_hh_recipient wage
+ON spells.year_tm2=wage.year AND spells.quarter_tm2=wage.quarter AND spells.recptno=wage.recptno
+GROUP BY 1,2,3,4
+ORDER BY 1,2,3,4;
+/*tm3*/
+CREATE TEMP TABLE wage_tm3 AS
+SELECT spells.recptno,spells.oldSpell_end,spells.year_tm3, spells.quarter_tm3, 
+	COUNT(DISTINCT(empr_no)) AS num_emp_tm3,
+	SUM(wage) AS wage_sum_tm3, MAX(wage) AS wage_high_tm3
+FROM c6.yq_return_hh_indcase_spells spells
+LEFT JOIN class2.il_wage_hh_recipient wage
+ON spells.year_tm3=wage.year AND spells.quarter_tm3=wage.quarter AND spells.recptno=wage.recptno
+GROUP BY 1,2,3,4
+ORDER BY 1,2,3,4;
+/*tm4*/
+CREATE TEMP TABLE wage_tm4 AS
+SELECT spells.recptno,spells.oldSpell_end,spells.year_tm4, spells.quarter_tm4, 
+	COUNT(DISTINCT(empr_no)) AS num_emp_tm4,
+	SUM(wage) AS wage_sum_tm4, MAX(wage) AS wage_high_tm4
+FROM c6.yq_return_hh_indcase_spells spells
+LEFT JOIN class2.il_wage_hh_recipient wage
+ON spells.year_tm4=wage.year AND spells.quarter_tm4=wage.quarter AND spells.recptno=wage.recptno
+GROUP BY 1,2,3,4
+ORDER BY 1,2,3,4;
+#+END_SRC
+
+We then join all the temp tables together
+
+#+BEGIN_SRC sql
+/*combine above 8 tables together*/
+DROP TABLE IF EXISTS c6.wage_tp4_tm4;
+CREATE TABLE c6.wage_tp4_tm4 AS
+SELECT a.recptno,a.oldSpell_end, 
+	a.num_emp_tp2, a.wage_sum_tp2, a.wage_high_tp2,
+	b.num_emp_tp1, b.wage_sum_tp1, b.wage_high_tp1,
+	c.num_emp_tm1, c.wage_sum_tm1, c.wage_high_tm1,
+	d.num_emp_tm2, d.wage_sum_tm2, d.wage_high_tm2,
+	e.num_emp_tm3, e.wage_sum_tm3, e.wage_high_tm3,
+	f.num_emp_tm4, f.wage_sum_tm4, f.wage_high_tm4,
+	g.num_emp_tp3, g.wage_sum_tp3, g.wage_high_tp3,
+	h.num_emp_tp4, h.wage_sum_tp4, h.wage_high_tp4
+FROM wage_tp2 a 
+JOIN wage_tp1 b ON a.recptno=b.recptno AND a.oldSpell_end=b.oldSpell_end
+JOIN wage_tm1 c ON a.recptno=c.recptno AND a.oldSpell_end=c.oldSpell_end
+JOIN wage_tm2 d ON a.recptno=d.recptno AND a.oldSpell_end=d.oldSpell_end
+JOIN wage_tm3 e ON a.recptno=e.recptno AND a.oldSpell_end=e.oldSpell_end
+JOIN wage_tm4 f ON a.recptno=f.recptno AND a.oldSpell_end=f.oldSpell_end
+JOIN wage_tp3 g ON a.recptno=g.recptno AND a.oldSpell_end=g.oldSpell_end
+JOIN wage_tp4 h ON a.recptno=h.recptno AND a.oldSpell_end=h.oldSpell_end
+#+END_SRC
+
