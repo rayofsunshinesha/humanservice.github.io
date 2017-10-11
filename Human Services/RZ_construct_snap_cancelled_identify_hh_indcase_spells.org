@@ -37,7 +37,7 @@ There are spell type, spell starting & ending date, and some demographic about t
 Link snap canceled with head of household spell using the functions  =partition by= 
 
 #+BEGIN_SRC sql
-//tag the specific spell that canceled due to earning for foodstamp
+--tag the specific spell that canceled due to earning for foodstamp
 SQL:
 DROP TABLE IF EXISTS c6.snap_cancelled_identify_hh_indcase_spells ;
 CREATE TABLE c6.snap_cancelled_identify_hh_indcase_spells AS 
@@ -62,7 +62,7 @@ ORDER BY ABS(days_between_end_cancel)
 Link tanf canceled with head of household spell, same logic 
 
 #+BEGIN_SRC sql
-//tag the specific spell that canceled due to earning for tanf
+--tag the specific spell that canceled due to earning for tanf
 DROP TABLE IF EXISTS c6.tanf_cancelled_identify_hh_indcase_spells ;
 CREATE TABLE c6.tanf_cancelled_identify_hh_indcase_spells AS 
 SELECT *, 1 as tag_cancel_tanf
