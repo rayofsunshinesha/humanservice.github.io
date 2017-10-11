@@ -8,8 +8,7 @@
 * Before we start
 
 - Wage record files are quarterly. 
-- We took spells that end in the same quarter to construct a cohort at time t. 
-From this moment, t-1 (t minus 1 as tm1) would be 1 quarter before time t, t+1 (t plus 1 as tp1) would be 1 quarter after time t.
+- We took spells that end in the same quarter to construct a cohort at time t. From this moment, t-1 (t minus 1 as tm1) would be 1 quarter before time t, t+1 (t plus 1 as tp1) would be 1 quarter after time t.
 
 * The data set
 
