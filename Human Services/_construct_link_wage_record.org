@@ -1,4 +1,4 @@
-#+TITLE: Link to wage record 
+#+TITLE: Link with wage record 
 #+SUBTITLE: Using SQL for doing Data Analysis
 #+AUTHOR: Ruisha
 #+EMAIL: ruishaz@gmail.com
@@ -140,7 +140,7 @@ therefore, time t-1 for those months would be quarter 4 the year before. so on a
 ** Intermidiate data set
 - Goal: attach wage record info from t-4 to t+4 given each head of household spell 
 
-We use the functions  =creat temp table= to save storage and speed up processing time
+We use the functions  =create temp table= to save storage and speed up processing time
 
 #+BEGIN_SRC sql
 /*tp4*/
