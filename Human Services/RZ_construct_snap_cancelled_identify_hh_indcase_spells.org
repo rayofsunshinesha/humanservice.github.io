@@ -1,4 +1,4 @@
-#+TITLE: Identity snap spell that canceled due to earning
+#+TITLE: Identity spell that canceled due to earning
 #+SUBTITLE: Using SQL for doing Data Analysis
 #+AUTHOR: Ruisha
 #+EMAIL: ruishaz@gmail.com
