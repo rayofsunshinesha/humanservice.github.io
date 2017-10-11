@@ -7,31 +7,34 @@
 
 * Before we start
 
-Self-suffiency measurement is cased canceled due to eaarning
-
-** Case canceled due to earning 
-
-- the self-sufficiency measure that human services current use to evaluate how well are spell recipents doing. 
-- For example: If 5% of all cases that were canceled due to earning last quarter, 6% are canceled due to earning this quarter, self-sufficiency of spell recipent is increasing as the department believes.  
-
-** Data tables
-
-- case canceled due to earning are tagged in a table with chapen hall id and a date. 
-- head of house hold spell information include caseid (primary key), chapen hall id, and spell start and end date.
-- the goal is link above two and tag the spell with a 0/1 case canceled due to earning column.
+- Self-suffiency measurement that human service department is current using is called case canceled due to earning
+- Data tables including snap case canceled due to earning, tanf case canceled due to earning, head of household spells.  
+- Goal: generate intermediate tables for next step.
 
 * The data set
 
-The data represents the inspections made in different facilities in
-the area of Chicago.
+snap/tanf canceled due to earning is organized by chapen hall id (primary key).
+There are different types of dates for case cancel process. We choose transaction_date as the benchmark.
 
-There are different types of inspections, different types of
-facilities and different results (or outcomes) of that
-inspections. Also the data contains the
-types of violations and text descriptions in free form about the
-violations.
+head of household spell table is organized by recipent id (primary key).
+There are spell type, spell starting & ending date, and some demographic about the spell receipent.  
 
-We will do this together using the functions  =partition by= 
+** Case canceled due to earning measure 
+
+- This measure evaluates how well spell recipents are doing at the time of cancelation. 
+- For example: If 5% of all cases that were canceled due to earning last quarter, 6% are canceled due to earning this quarter, self-sufficiency of spell recipent is increasing as the department believes.  
+
+** Data tables: snap case canceled due to earning, tanf case canceled due to earning
+
+- Case canceled due to earning are tagged in a table with chapen hall id and a date. 
+
+** Data tables: head of household spells 
+- Head of household spell information include caseid (primary key), chapen hall id, and spell start and end date.
+
+** intermidiate data set
+- Goal: link case canceled due to earning with head of household table to tag the spell with a 0/1 case canceled due to earning column.
+
+Link snap canceled with head of household spell using the functions  =partition by= 
 
 #+BEGIN_SRC sql
 //tag the specific spell that canceled due to earning for foodstamp
@@ -56,9 +59,10 @@ WHERE ABS(days_between_end_cancel)<=60
 ORDER BY ABS(days_between_end_cancel)
 #+END_SRC
 
-We would do the same thing for tanf spells 
+Link tanf canceled with head of household spell, same logic 
 
 #+BEGIN_SRC sql
+//tag the specific spell that canceled due to earning for tanf
 DROP TABLE IF EXISTS c6.tanf_cancelled_identify_hh_indcase_spells ;
 CREATE TABLE c6.tanf_cancelled_identify_hh_indcase_spells AS 
 SELECT *, 1 as tag_cancel_tanf
