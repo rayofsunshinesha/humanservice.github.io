@@ -19,19 +19,19 @@ There are different types of dates for case cancel process. We choose transactio
 head of household spell table is organized by recipent id (primary key).
 There are spell type, spell starting & ending date, and some demographic about the spell receipent.  
 
-	** Case canceled due to earning measure 
+** Case canceled due to earning measure 
 
 - This measure evaluates how well spell recipents are doing at the time of cancelation. 
 - For example: If 5% of all cases that were canceled due to earning last quarter, 6% are canceled due to earning this quarter, self-sufficiency of spell recipent is increasing as the department believes.  
 
-	** Data tables: snap case canceled due to earning, tanf case canceled due to earning
+** Data tables: snap case canceled due to earning, tanf case canceled due to earning
 
 - Case canceled due to earning are tagged in a table with chapen hall id and a date. 
 
-	** Data tables: head of household spells 
+** Data tables: head of household spells 
 - Head of household spell information include caseid (primary key), chapen hall id, and spell start and end date.
 
-	** Intermidiate data set
+** Intermidiate data set
 - Goal: link case canceled due to earning with head of household table to tag the spell with a 0/1 case canceled due to earning column.
 
 Link snap canceled with head of household spell using the functions  =partition by= 
