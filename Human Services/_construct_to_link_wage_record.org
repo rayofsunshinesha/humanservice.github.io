@@ -1,0 +1,127 @@
+#+TITLE: Link to wage record 
+#+SUBTITLE: Using SQL for doing Data Analysis
+#+AUTHOR: Ruisha
+#+EMAIL: ruishaz@gmail.com
+#+STARTUP: showeverything
+#+STARTUP: nohideblocks
+
+* Before we start
+
+- Wage record files are quarterly. 
+- We took spells that end in the same quarter to construct a cohort at time t. 
+From this moment, t-1 (t minus 1 as tm1) would be 1 quarter before time t, t+1 (t plus 1 as tp1) would be 1 quarter after time t.
+
+* The data set
+
+head of household spell table is organized by recipent id (primary key).
+There are spell type, spell starting & ending date, and some demographic about the spell receipent.
+here, I only care about the spell ending date.
+
+** Intermidiate data set
+- Goal: to create time stamp of quarter and year  from t-4 to t+4, given datetime of spell ending  
+
+We use the functions  =extract (month/year from datetime variable)=
+
+#+BEGIN_SRC sql
+DROP TABLE IF EXISTS c6.yq_return_hh_indcase_spells ;
+CREATE TABLE c6.yq_return_hh_indcase_spells AS
+SELECT recptno,oldSpell_end,
+/*tp4 */
+case
+	when extract(month from oldSpell_end) in (1,2,3) then 1
+	when extract(month from oldSpell_end) in (4,5,6) then 2
+	when extract(month from oldSpell_end) in (7,8,9) then 3
+	else 4
+	end as quarter_tp4,
+case
+	when extract(month from oldSpell_end)>0 then extract(year from oldSpell_end)+1
+	else extract(year from oldSpell_end)
+	end as year_tp4,
+/*tp3 */
+case
+	when extract(month from oldSpell_end) in (1,2,3) then 4
+	when extract(month from oldSpell_end) in (4,5,6) then 1
+	when extract(month from oldSpell_end) in (7,8,9) then 2
+	else 3
+	end as quarter_tp3,
+case
+	when extract(month from oldSpell_end)>3 then extract(year from oldSpell_end)+1
+	else extract(year from oldSpell_end)
+	end as year_tp3,
+/*tp2 */
+case
+	when extract(month from oldSpell_end) in (1,2,3) then 3
+	when extract(month from oldSpell_end) in (4,5,6) then 4
+	when extract(month from oldSpell_end) in (7,8,9) then 1
+	else 2
+	end as quarter_tp2,
+case
+	when extract(month from oldSpell_end)>6 then extract(year from oldSpell_end)+1
+	else extract(year from oldSpell_end)
+	end as year_tp2,
+/*tp1 */
+case
+	when extract(month from oldSpell_end) in (1,2,3) then 2
+	when extract(month from oldSpell_end) in (4,5,6) then 3
+	when extract(month from oldSpell_end) in (7,8,9) then 4
+	else 1
+	end as quarter_tp1,
+case
+	when extract(month from oldSpell_end)>9 then extract(year from oldSpell_end)+1
+	else extract(year from oldSpell_end)
+	end as year_tp1,
+/*tm1 */
+case
+	when extract(month from oldSpell_end) in (4,5,6) then 1
+	when extract(month from oldSpell_end) in (7,8,9) then 2
+	when extract(month from oldSpell_end) in (10,11,12) then 3
+	else 4
+	end as quarter_tm1,
+case
+	when extract(month from oldSpell_end)<4 then extract(year from oldSpell_end)-1
+	else extract(year from oldSpell_end)
+	end as year_tm1,
+/*tm2 */
+case
+	when extract(month from oldSpell_end) in (7,8,9) then 1
+	when extract(month from oldSpell_end) in (10,11,12) then 2
+	when extract(month from oldSpell_end) in (1,2,3) then 3
+	else 4
+	end as quarter_tm2,
+case
+	when extract(month from oldSpell_end)<7 then extract(year from oldSpell_end)-1
+	else extract(year from oldSpell_end)
+	end as year_tm2,
+/*tm3*/
+case
+	when extract(month from oldSpell_end) in (10,11,12) then 1
+	when extract(month from oldSpell_end) in (1,2,3) then 2
+	when extract(month from oldSpell_end) in (4,5,6) then 3
+	else 4
+	end as quarter_tm3,
+case
+	when extract(month from oldSpell_end)<10 then extract(year from oldSpell_end)-1
+	else extract(year from oldSpell_end)
+	end as year_tm3,
+/*tm4 */
+case
+	when extract(month from oldSpell_end) in (1,2,3) then 1
+	when extract(month from oldSpell_end) in (4,5,6) then 2
+	when extract(month from oldSpell_end) in (7,8,9) then 3
+	else 4
+	end as quarter_tm4,
+case
+	when extract(month from oldSpell_end)<13 then extract(year from oldSpell_end)-1
+	else extract(year from oldSpell_end)
+	end as year_tm4
+from 
+	(select recptno,oldSpell_end
+	from c6.return_hh_indcase_spells
+	group by recptno,oldSpell_end) a
+#+END_SRC
+
+*** Idea behind:
+
+calculate the relative year quarter given a spell ending year month
+regardless of what year month a spell end day is, month 1&2&3 are always quarter 1 at time t,
+therefore, time t-1 for those months would be quarter 4 the year before. so on and so forth.
