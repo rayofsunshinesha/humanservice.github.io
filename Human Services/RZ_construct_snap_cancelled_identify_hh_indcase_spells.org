@@ -84,29 +84,25 @@ WHERE ABS(days_between_end_cancel)<=60
 ORDER BY ABS(days_between_end_cancel)
 #+END_SRC
 
-* Idea behind:
+*** Idea behind:
 
 use all cases in idhs.snap_cancelled_earnings_redacted (where ch_dpa_caseid is not missing )
 go merge with idhs.hh_indcase_spells spell to identify the specicfic spell that is canceled due to earning. 
 tag the record of the smallest gap days btw transaction_date & spell.end_date 
 if the gap is more than 60 days, I make the judgement that the spell is not related to the transaction_date.
 
-* Some basic tasks in a data analysis project
-
-- Cleaning the data
-- Manipulating the data
-- Create new /FeatureS/
-- Create new views of the data
-- Answering analytical questions
+* Find the earlist return spell of an ending spell 
 
 * The data set
 
-The data set include head of house hold spells info.
+The data set is head of household spells (idhs.hh_indcase_spells). 
+Head of household spell table is organized by recipent id (primary key).
+There are spell type, spell starting & ending date, and some demographic about the spell receipent.  
 
-** Goal: file the earliest return spell given each ending spell 
+** Intermidiate data set
+- Goal: Find out whether there is a return spell or not given each ending spell for validation part of the project
 
 We would be using the functions  =group by= AND  =order by= to find the earlist return spell
-
 
 #+BEGIN_SRC sql
 
@@ -139,3 +135,20 @@ FROM
 group by 1,2,3
 order by 1,2,3;
 #+END_SRC
+
+*** Idea behind:
+
+the inner select from : use all spells in idhs.hh_indcase_spells spell that exclude grant(c6.hh_indcase_spells_nogrant) 
+and left join with itself to construct one ending spell with all possible future return spell
+then calculate the gap between the ending spell and all future return spells (returnSpell_gap)
+and rank the gap from the shortest the longest, if there is no future return spell, give a 1m value 
+the outter select from : keep one ending spell a record with a  0/1 return_index, smallest gap days, and total number of future return spells.  
+
+
+* Some basic tasks in a data analysis project
+
+- Cleaning the data
+- Manipulating the data
+- Create new /FeatureS/
+- Create new views of the data
+- Answering analytical questions
