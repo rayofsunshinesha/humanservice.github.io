@@ -49,6 +49,7 @@ FROM
 	ON (a.recptno=b.recptno) AND (a.end_date<=b.end_date)
 	ORDER BY b.recptno,b.end_date,b.benefit_type) as c
 GROUP BY 1,2,3,4;
+#+END_SRC
 
 ** Features about demographic
 
@@ -86,7 +87,8 @@ from (
 - Since in one of the table there is a member count for a household, I want to compare that column with actually aggregate number of people in a head of household and see the difference
 
 - code to explore the hh count
-Link snap canceled with head of household spell using the functions  =partition by= 
+
+first aggregate given a head of household, then compare with the given column, then look at the distribution by =distinct= 
 #+BEGIN_SRC sql
 select distinct(c.compare)
 from (
@@ -108,6 +110,7 @@ from (
 on hh_count compare to count(*) as num_people from idhs_member group by recptno: hh_count is always smaller or equal to num_people. I choose to use hh_count because num_people can get very big to 20+ etc. I think hh_count is visually more reasonable and like to hh closer 
 
 - code to generate features
+
 #+BEGIN_SRC sql
 drop table if exists c6.pre_features_hh_member;
 create table c6.pre_features_hh_member as
