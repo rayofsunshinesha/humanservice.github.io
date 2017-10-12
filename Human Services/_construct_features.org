@@ -5,17 +5,23 @@
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
 
-* Feature creation
+* Before we start
+
+- This step is to prepare dataset for machine learning model
+- The dataset are from Human services and wage record
+- There are categories of features, each category include several features
+
+* Feature category
 
 - Features about demographic
-- Features about spell
+- Features about spell history
 - Features about employment
 
-/*spell_length and number of previous spells*/
-/*07/07/2017*/
+** Features about spell history
 
-Link spell with its history spells using the functions  =LEFT/RIGHT JOIN= and using the function =GROUP BY= to calculate statistics =MIN= 
-=MAX= =COUNT= =SUM=  
+- spell_length and number of previous spells
+
+Link spell with its history spells using the functions  =LEFT/RIGHT JOIN= and using the function =GROUP BY= to calculate statistics =MIN= or =MAX= or =COUNT= or =SUM=  
 
 #+BEGIN_SRC sql
 --first link spell with itself to find the history spells then aggregate to stats we need
@@ -43,6 +49,89 @@ FROM
 	ON (a.recptno=b.recptno) AND (a.end_date<=b.end_date)
 	ORDER BY b.recptno,b.end_date,b.benefit_type) as c
 GROUP BY 1,2,3,4;
+
+** Features about demographic
+
+- features from idhs.assistance_case: district,race,homeless
+
+Clean up a variable with  =case when else = 
+
+#+BEGIN_SRC sql
+/*features from idhs.assistance_case: district,race,homeless*/
+drop table if exists c6.pre_features_assistance_case;
+create table c6.pre_features_assistance_case as
+select c.ch_dpa_caseid,
+case when c.district >=10 and c.district <=115 then 0 
+	when c.district >=200 and c.district <=294 then 1
+	else 2 end district,
+case when c.homeless='N' then 0 else 1 end homeless,
+case when c.race=1 then 1
+	when c.race=2 then 2
+	else 3 end race
+from (
+	select a.ch_dpa_caseid,
+	b.district,b.race,b.homeless
+	from 
+		(select ch_dpa_caseid
+		from c6.return_hh_indcase_spells
+		group by ch_dpa_caseid) a
+	left join idhs.assistance_case b
+	on a.ch_dpa_caseid=b.ch_dpa_caseid) as c
+#+END_SRC
+
+- features from idhs.hh_member: sex,rootrace,hh_counts,foreignbn
+
+*** head of household count
+
+- Since in one of the table there is a member count for a household, I want to compare that column with actually aggregate number of people in a head of household and see the difference
+
+- code to explore the hh count
+Link snap canceled with head of household spell using the functions  =partition by= 
+#+BEGIN_SRC sql
+select distinct(c.compare)
+from (
+	select a.recptno, a.hh_counts, b.num_people,
+	case when a.hh_counts= b.num_people then 1
+		when a.hh_counts< b.num_people then 0
+	else 2 end as "compare"
+	from
+		(select recptno,hh_counts
+		from idhs.hh_member) as a
+		join (select recptno,count(*) as num_people
+		from idhs.member
+		group by 1) as b
+	on a.recptno=b.recptno ) as c */
+#+END_SRC
+
+*** note 
+
+on hh_count compare to count(*) as num_people from idhs_member group by recptno: hh_count is always smaller or equal to num_people. I choose to use hh_count because num_people can get very big to 20+ etc. I think hh_count is visually more reasonable and like to hh closer 
+
+- code to generate features
+#+BEGIN_SRC sql
+drop table if exists c6.pre_features_hh_member;
+create table c6.pre_features_hh_member as
+select c.recptno,
+case when c.sex is NULL then 0
+	when c.sex=1 then 1
+	when c.sex=2 then 2
+	else 0 end sex,
+case when c.rootrace NOT in (1,2,3,6,7) then 0 
+	else c.rootrace end rootrace,
+case when c.foreignbn is NULL then 0 else c.foreignbn end foreignbn,
+case when c.hh_counts is NULL then 0 else c.hh_counts end hh_counts
+from
+	(select a.recptno,
+    b.sex,b.rootrace,b.hh_counts,b.foreignbn
+	from (select recptno
+		from c6.return_hh_indcase_spells
+		group by recptno) a
+	left join idhs.hh_member b
+	on a.recptno = b.recptno 
+	order by 1 ) as c
+#+END_SRC
+
+
 
 Link snap canceled with head of household spell using the functions  =partition by= 
 #+BEGIN_SRC sql
