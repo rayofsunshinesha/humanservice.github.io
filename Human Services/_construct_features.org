@@ -1,0 +1,50 @@
+#+TITLE: Construct Features
+#+SUBTITLE: Using SQL for doing Data Analysis
+#+AUTHOR: Ruisha
+#+EMAIL: ruishaz@gmail.com
+#+STARTUP: showeverything
+#+STARTUP: nohideblocks
+
+* Feature creation
+
+- Features about demographic
+- Features about spell
+- Features about employment
+
+/*spell_length and number of previous spells*/
+/*07/07/2017*/
+
+Link spell with its history spells using the functions  =LEFT/RIGHT JOIN= and using the function =GROUP BY= to calculate statistics =MIN= 
+=MAX= =COUNT= =SUM=  
+
+#+BEGIN_SRC sql
+--first link spell with itself to find the history spells then aggregate to stats we need
+drop table if exists c6.pre_features_spells_info;
+create table c6.pre_features_spells_info as
+SELECT c.recptno,c.benefit_type,c.end_date,c.spell_length,
+	COUNT(*) -1 as n_preSpells,
+	MAX(c.preSpell_length) AS max_Spell_length,
+	MIN(c.preSpell_length) AS min_Spell_length,
+	AVG(c.preSpell_length) AS avg_Spell_length,
+	SUM(c.pre_foodstamp) AS total_foodstamp_utlnow,
+	SUM(c.pre_tanf) AS total_tanf_utlnow
+FROM
+	(SELECT b.recptno,a.benefit_type AS preBene_type,
+		a.start_date AS preSpell_start,a.end_date AS preSpell_end,
+		(a.end_date-a.start_date) AS preSpell_length,
+	CASE WHEN a.benefit_type = 'foodstamp' THEN 1 ELSE 0 END pre_foodstamp,
+	CASE WHEN a.benefit_type = 'tanf46' THEN 1 ELSE 0 END pre_tanf,
+		b.benefit_type,
+		b.start_date,b.end_date,(b.end_date-b.start_date) AS spell_length,
+	CASE WHEN b.benefit_type = 'foodstamp' THEN 1 ELSE 0 END foodstamp,
+	CASE WHEN b.benefit_type = 'tanf46' THEN 1 ELSE 0 END tanf
+	FROM c6.hh_indcase_spells_nogrant a
+	RIGHT JOIN c6.hh_indcase_spells_nogrant b
+	ON (a.recptno=b.recptno) AND (a.end_date<=b.end_date)
+	ORDER BY b.recptno,b.end_date,b.benefit_type) as c
+GROUP BY 1,2,3,4;
+
+Link snap canceled with head of household spell using the functions  =partition by= 
+#+BEGIN_SRC sql
+
+#+END_SRC
