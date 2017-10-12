@@ -17,6 +17,20 @@
 - Features about spell history
 - Features about employment
 
+n_spells (Aggregation): Total number of spells someone has had up until the end_date of current spell.
+max/min/avg_preSpell_length (Aggregation): max/min/avg of spell length of spells someone has had up until the end_date of current spell.
+spell_length: the length of current spell: end_date- start_date.
+
+age (Transformation): The age feature is created by substracting the bdate_year with the current year of prediction.
+edlevel (Binary): 0 if the person has less than a high school education and 1 if they are more than a high school education.
+workexp (Binary): 0 if no work experience 1 if there is some sort of work experience
+married (Binary): 1 if the person is married 0 if they are not.
+gender: (Binary) 1(male) 2(female)
+district: (Binary): 0 if downstate 1 if cook county 3.special purpose
+race: 1. white 2. black 3.other
+homeless: 0 not homeless, 1-3 have shelter 4 not have shelter
+(foodstamp, tanf, granf): (Binary) 0 if the last benefit was not foodstamp, tanf or grantf, 1 if it was
+
 ** Features about spell history
 
 - spell_length and number of previous spells
