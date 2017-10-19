@@ -17,23 +17,11 @@
 - Features about spell history
 - Features about employment
 
-n_spells (Aggregation): Total number of spells someone has had up until the end_date of current spell.
-max/min/avg_preSpell_length (Aggregation): max/min/avg of spell length of spells someone has had up until the end_date of current spell.
-spell_length: the length of current spell: end_date- start_date.
-
-age (Transformation): The age feature is created by substracting the bdate_year with the current year of prediction.
-edlevel (Binary): 0 if the person has less than a high school education and 1 if they are more than a high school education.
-workexp (Binary): 0 if no work experience 1 if there is some sort of work experience
-married (Binary): 1 if the person is married 0 if they are not.
-gender: (Binary) 1(male) 2(female)
-district: (Binary): 0 if downstate 1 if cook county 3.special purpose
-race: 1. white 2. black 3.other
-homeless: 0 not homeless, 1-3 have shelter 4 not have shelter
-(foodstamp, tanf, granf): (Binary) 0 if the last benefit was not foodstamp, tanf or grantf, 1 if it was
-
 ** Features about spell history
 
-- spell_length and number of previous spells
+- n_spells (Aggregation): Total number of spells someone has had up until the end_date of current spell.
+- max/min/avg_preSpell_length (Aggregation): max/min/avg of spell length of spells someone has had up until the end_date of current spell.
+- spell_length: the length of current spell: end_date- start_date.
 
 Link spell with its history spells using the functions  =LEFT/RIGHT JOIN= and using the function =GROUP BY= to calculate statistics =MIN= or =MAX= or =COUNT= or =SUM=  
 
@@ -68,8 +56,11 @@ GROUP BY 1,2,3,4;
 ** Features about demographic
 
 - features from idhs.assistance_case: district,race,homeless
+- district: (Binary): 0 if downstate 1 if cook county 3.special purpose
+- race: 1. white 2. black 3.other
+- homeless: 0 not homeless, 1-3 have shelter 4 not have shelter
 
-Clean up a variable with  =case when else = 
+Clean up a variable with  =case when= 
 
 #+BEGIN_SRC sql
 /*features from idhs.assistance_case: district,race,homeless*/
@@ -94,36 +85,34 @@ from (
 	on a.ch_dpa_caseid=b.ch_dpa_caseid) as c
 #+END_SRC
 
-- features from idhs.hh_member: sex,rootrace,hh_counts,foreignbn
+- features from idhs.member_info: edlevel,martlst,workexp
+- edlevel (Binary): 0 if the person has less than a high school education and 1 if they are more than a high school education.
+- workexp (Binary): 0 if no work experience 1 if there is some sort of work experience
+- married (Binary): 1 if the person is married 0 if they are not.
 
-*** head of household count
-
-- Since in one of the table there is a member count for a household, I want to compare that column with actually aggregate number of people in a head of household and see the difference
-
-- code to explore the hh count
-
-first aggregate given a head of household, then compare with the given column, then look at the distribution by =distinct= 
 #+BEGIN_SRC sql
-select distinct(c.compare)
-from (
-	select a.recptno, a.hh_counts, b.num_people,
-	case when a.hh_counts= b.num_people then 1
-		when a.hh_counts< b.num_people then 0
-	else 2 end as "compare"
-	from
-		(select recptno,hh_counts
-		from idhs.hh_member) as a
-		join (select recptno,count(*) as num_people
-		from idhs.member
-		group by 1) as b
-	on a.recptno=b.recptno ) as c */
+drop table if exists c6.pre_features_member_info;
+create table c6.pre_features_member_info as 
+select c.ch_dpa_caseid,c.recptno,
+case when c.edlevel in ('A', 'B', 'C', 'D', '1', '2', '3','E', 'F', '4') THEN 1
+     when c.edlevel in ('G', 'H', 'V', '5') THEN 2
+     when c.edlevel in ('W', 'X', 'Y', '6') THEN 3
+     when c.edlevel in ('Z', 'P', '7') THEN 4
+     else 0 end edlevel,
+case when c.martlst in (0,1,3,4,5,6) then 0 
+else 1 end marstat,
+case when c.workexp in ('0','1') then 0 
+else c.workexp end workexp
+from (select a.ch_dpa_caseid,a.recptno,
+           b.edlevel,b.workexp,b.martlst
+from (select ch_dpa_caseid,recptno
+from c6.return_hh_indcase_spells
+group by ch_dpa_caseid,recptno) a 
+left join idhs.member_info b
+ on a.recptno = b.recptno and a.ch_dpa_caseid=b.ch_dpa_caseid) as c;
 #+END_SRC
 
-*** note 
-
-on hh_count compare to count(*) as num_people from idhs_member group by recptno: hh_count is always smaller or equal to num_people. I choose to use hh_count because num_people can get very big to 20+ etc. I think hh_count is visually more reasonable and like to hh closer 
-
-- code to generate features
+- features from idhs.hh_member: sex,rootrace,hh_counts,foreignbn
 
 #+BEGIN_SRC sql
 drop table if exists c6.pre_features_hh_member;
@@ -148,9 +137,26 @@ from
 	order by 1 ) as c
 #+END_SRC
 
+_hh_counts notes_: Since in one of the table there is a member count for a household, I want to compare that column with actually aggregate number of people in a head of household and see the difference
+code to explore the hh count:
 
-
-Link snap canceled with head of household spell using the functions  =partition by= 
+first aggregate given a head of household, then compare with the given column, then look at the distribution by =distinct= 
 #+BEGIN_SRC sql
-
+select distinct(c.compare)
+from (
+	select a.recptno, a.hh_counts, b.num_people,
+	case when a.hh_counts= b.num_people then 1
+		when a.hh_counts< b.num_people then 0
+	else 2 end as "compare"
+	from
+		(select recptno,hh_counts
+		from idhs.hh_member) as a
+		join (select recptno,count(*) as num_people
+		from idhs.member
+		group by 1) as b
+	on a.recptno=b.recptno ) as c */
 #+END_SRC
+
+_find_: 
+
+on hh_count compare to count(*) as num_people from idhs_member group by recptno: hh_count is always smaller or equal to num_people. I choose to use hh_count because num_people can get very big to 20+ etc. I think hh_count is visually more reasonable and like to hh closer 
