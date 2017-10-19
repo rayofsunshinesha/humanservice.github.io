@@ -10,7 +10,8 @@
 - label/outcome of machine learning model: return in a year, 2 years, 6 months...
 - features/predictors: include spell and its history information, wage information, and demographics.
 
-** process wage information
+** Process wage information
+
 Since a wage is missing would result in null, we want to use =coalesce(var,0)= to turn all wages that are missing to 0:
 #+BEGIN_SRC sql
 DROP TABLE IF EXISTS c6.partial_evaluate_b ;
@@ -40,15 +41,11 @@ ON spells.recptno=a.recptno AND spells.oldSpell_end=a.oldspell_end
 order by spells.recptno,spells.oldspell_end;
 #+END_SRC
 
-** join features table with return spell file
--spell_length and number of previous spells
-c6.pre_features_spells_info: recptno,c.benefit_type,c.end_date
--features from idhs.member_info: edlevel,martlst,workexp
-c6.pre_features_member_info :  c.ch_dpa_caseid,c.recptno,
--features from idhs.assistance_case: district,race,homeless
-c6.pre_features_assistance_case: c.ch_dpa_caseid,
--features from idhs.hh_member: sex,rootrace,hh_counts
-c6.pre_features_hh_member : c.recptno,  
+** Join features table with return spell file
+-spell_length and number of previous spells; join on: c6.pre_features_spells_info: recptno,c.benefit_type,c.end_date
+-features from idhs.member_info: edlevel,martlst,workexp: c6.pre_features_member_info ; join on: c.ch_dpa_caseid,c.recptno,
+-features from idhs.assistance_case: district,race,homeless; join on: c6.pre_features_assistance_case: c.ch_dpa_caseid,
+-features from idhs.hh_member: sex,rootrace,hh_counts; join on:  c6.pre_features_hh_member : c.recptno,  
 
 #+BEGIN_SRC sql
 DROP TABLE IF EXISTS c6.partial_evaluate_c ;
