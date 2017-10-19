@@ -137,7 +137,7 @@ from
 	order by 1 ) as c
 #+END_SRC
 
-_hh_counts notes_: Since in one of the table there is a member count for a household, I want to compare that column with actually aggregate number of people in a head of household and see the difference
+hh_counts notes: Since in one of the table there is a member count for a household, I want to compare that column with actually aggregate number of people in a head of household and see the difference
 code to explore the hh count:
 
 first aggregate given a head of household, then compare with the given column, then look at the distribution by =distinct= 
@@ -157,6 +157,6 @@ from (
 	on a.recptno=b.recptno ) as c */
 #+END_SRC
 
-_find_: 
+find: 
 
 on hh_count compare to count(*) as num_people from idhs_member group by recptno: hh_count is always smaller or equal to num_people. I choose to use hh_count because num_people can get very big to 20+ etc. I think hh_count is visually more reasonable and like to hh closer 
