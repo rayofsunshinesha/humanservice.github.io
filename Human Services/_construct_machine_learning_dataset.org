@@ -41,14 +41,15 @@ order by spells.recptno,spells.oldspell_end;
 #+END_SRC
 
 ** join features table with return spell file
--/*spell_length and number of previous spells*/
+-spell_length and number of previous spells
 c6.pre_features_spells_info: recptno,c.benefit_type,c.end_date
--/*features from idhs.member_info: edlevel,martlst,workexp*/
+-features from idhs.member_info: edlevel,martlst,workexp
 c6.pre_features_member_info :  c.ch_dpa_caseid,c.recptno,
--/*features from idhs.assistance_case: district,race,homeless*/
+-features from idhs.assistance_case: district,race,homeless
 c6.pre_features_assistance_case: c.ch_dpa_caseid,
--/*features from idhs.hh_member: sex,rootrace,hh_counts*/
+-features from idhs.hh_member: sex,rootrace,hh_counts
 c6.pre_features_hh_member : c.recptno,  
+
 #+BEGIN_SRC sql
 DROP TABLE IF EXISTS c6.partial_evaluate_c ;
 CREATE TABLE c6.partial_evaluate_c AS
