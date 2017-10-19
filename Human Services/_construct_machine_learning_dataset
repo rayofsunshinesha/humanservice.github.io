@@ -1,0 +1,49 @@
+#+TITLE: Construct Machine Learning Dataset
+#+SUBTITLE: Using SQL for doing Data Analysis
+#+AUTHOR: Ruisha
+#+EMAIL: ruishaz@gmail.com
+#+STARTUP: showeverything
+#+STARTUP: nohideblocks
+
+* Before we start
+- This is the sql code that combine all the intermediate data sets together
+- label/outcome of machine learning model: return in a year, 2 years, 6 months...
+- features/predictors: include spell and its history information, wage information, and demographics.
+
+Since a wage is missing would result in null, we want to use =coalesce(var,0)= to turn all wages that are missing to 0:
+#+BEGIN_SRC sql
+DROP TABLE IF EXISTS c6.partial_evaluate_b ;
+CREATE TABLE c6.partial_evaluate_b AS
+SELECT spells.recptno,spells.oldspell_end,
+spells.year_tp4, spells.quarter_tp4,
+spells.year_tp3, spells.quarter_tp3,
+spells.year_tp2, spells.quarter_tp2,
+spells.year_tp1, spells.quarter_tp1,
+spells.year_tm1, spells.quarter_tm1,
+spells.year_tm2, spells.quarter_tm2,
+spells.year_tm3, spells.quarter_tm3,
+spells.year_tm4, spells.quarter_tm4,
+a.num_emp_tp4, coalesce(a.wage_sum_tp4,0) as wage_sum_tp4, coalesce(a.wage_high_tp4,0) as wage_high_tp4,
+a.num_emp_tp3, coalesce(a.wage_sum_tp3,0) as wage_sum_tp3, coalesce(a.wage_high_tp3,0) as wage_high_tp3,
+a.num_emp_tp2, coalesce(a.wage_sum_tp2,0) as wage_sum_tp2, coalesce(a.wage_high_tp2,0) as wage_high_tp2,
+a.num_emp_tp1, coalesce(a.wage_sum_tp1,0) as wage_sum_tp1, coalesce(a.wage_high_tp1,0) as wage_high_tp1,
+a.num_emp_tm1, coalesce(a.wage_sum_tm1,0) as wage_sum_tm1, coalesce(a.wage_high_tm1,0) as wage_high_tm1,
+a.num_emp_tm2, coalesce(a.wage_sum_tm2,0) as wage_sum_tm2, coalesce(a.wage_high_tm2,0) as wage_high_tm2,
+a.num_emp_tm3, coalesce(a.wage_sum_tm3,0) as wage_sum_tm3, coalesce(a.wage_high_tm3,0) as wage_high_tm3,
+a.num_emp_tm4, coalesce(a.wage_sum_tm4,0) as wage_sum_tm4, coalesce(a.wage_high_tm4,0) as wage_high_tm4,
+(coalesce(a.wage_sum_tp4,0)+coalesce(a.wage_sum_tp3,0)+coalesce(a.wage_sum_tp2,0)+coalesce(a.wage_sum_tp1,0)) AS wage_sum_tp1t4,
+(coalesce(a.wage_sum_tm4,0)+coalesce(a.wage_sum_tm3,0)+coalesce(a.wage_sum_tm2,0)+coalesce(a.wage_sum_tm1,0)) AS wage_sum_tm1t4
+FROM c6.yq_return_hh_indcase_spells spells
+LEFT JOIN c6.wage_tp4_tm4 a
+ON spells.recptno=a.recptno AND spells.oldSpell_end=a.oldspell_end
+order by spells.recptno,spells.oldspell_end;
+#+END_SRC
+
+#+BEGIN_SRC sql
+
+#+END_SRC
+
+
+#+BEGIN_SRC sql
+
+#+END_SRC
