@@ -10,6 +10,7 @@
 - label/outcome of machine learning model: return in a year, 2 years, 6 months...
 - features/predictors: include spell and its history information, wage information, and demographics.
 
+** process wage information
 Since a wage is missing would result in null, we want to use =coalesce(var,0)= to turn all wages that are missing to 0:
 #+BEGIN_SRC sql
 DROP TABLE IF EXISTS c6.partial_evaluate_b ;
@@ -39,11 +40,83 @@ ON spells.recptno=a.recptno AND spells.oldSpell_end=a.oldspell_end
 order by spells.recptno,spells.oldspell_end;
 #+END_SRC
 
+** join features table with return spell file
+-/*spell_length and number of previous spells*/
+c6.pre_features_spells_info: recptno,c.benefit_type,c.end_date
+-/*features from idhs.member_info: edlevel,martlst,workexp*/
+c6.pre_features_member_info :  c.ch_dpa_caseid,c.recptno,
+-/*features from idhs.assistance_case: district,race,homeless*/
+c6.pre_features_assistance_case: c.ch_dpa_caseid,
+-/*features from idhs.hh_member: sex,rootrace,hh_counts*/
+c6.pre_features_hh_member : c.recptno,  
 #+BEGIN_SRC sql
-
+DROP TABLE IF EXISTS c6.partial_evaluate_c ;
+CREATE TABLE c6.partial_evaluate_c AS
+SELECT a.recptno,a.oldBene_type,a.oldSpell_end,
+b.spell_length,b.n_preSpells,
+b.max_Spell_length,b.min_Spell_length,
+b.avg_Spell_length,
+b.total_foodstamp_utlnow,
+b.total_tanf_utlnow,
+c.edlevel,c.marstat,c.workexp,
+d.district,d.homeless,d.race,
+e.sex,e.rootrace,e.foreignbn,e.hh_counts
+FROM c6.return_hh_indcase_spells a
+LEFT JOIN c6.pre_features_spells_info b ON a.recptno=b.recptno AND a.oldBene_type=b.benefit_type 
+AND a.oldSpell_end=b.end_date
+LEFT JOIN c6.pre_features_member_info c ON a.recptno=c.recptno AND a.ch_dpa_caseid=c.ch_dpa_caseid
+LEFT JOIN c6.pre_features_assistance_case d ON a.ch_dpa_caseid=d.ch_dpa_caseid
+LEFT JOIN c6.pre_features_hh_member e ON a.recptno=e.recptno
+order by a.recptno,a.oldBene_type;
 #+END_SRC
 
-
+- join c6.partial_evaluate_a/b/c together
 #+BEGIN_SRC sql
-
+DROP TABLE IF EXISTS c6.partial_evaluate ;
+CREATE TABLE c6.partial_evaluate AS
+SELECT a.ch_dpa_caseid,a.recptno,a.return_index, 
+a.oldbene_type,  
+a.oldspell_end, 
+extract(years from member_age) AS age,
+case when a.oldbene_type = 'foodstamp' then 1 else 0 end foodstamp,
+case when a.oldbene_type = 'tanf46' then 1 else 0 end tanf,
+case when a.return_index=0 then 1 else 0 end never_return,
+case when a.gap <= 91 then 1 else 0 end return_3mth,
+case when a.gap <= 182 then 1 else 0 end return_6mth,
+case when a.gap <= 365 then 1 else 0 end return_1yr,
+case when a.gap <= 547 then 1 else 0 end return_1yr6mth,
+case when a.gap <= 730 then 1 else 0 end return_2yr,
+a.gap,
+CASE
+WHEN cancel.tag_cancel=1 THEN 1
+ELSE 0
+END AS "spell_cancel",
+b.num_emp_tp4, b.wage_sum_tp4, b.wage_high_tp4,
+b.num_emp_tp3, b.wage_sum_tp3, b.wage_high_tp3,
+b.num_emp_tp2, b.wage_sum_tp2, b.wage_high_tp2,
+b.num_emp_tp1, b.wage_sum_tp1, b.wage_high_tp1,
+b.num_emp_tm1, b.wage_sum_tm1, b.wage_high_tm1,
+b.num_emp_tm2, b.wage_sum_tm2, b.wage_high_tm2,
+b.num_emp_tm3, b.wage_sum_tm3, b.wage_high_tm3,
+b.num_emp_tm4, b.wage_sum_tm4, b.wage_high_tm4,
+b.wage_sum_tp1t4,b.wage_sum_tm1t4,
+case when b.quarter_tm1=4 then 1 
+else b.quarter_tm1+1 end as quarter_t,
+c.spell_length,c.n_preSpells,
+c.max_Spell_length,c.min_Spell_length,
+c.avg_Spell_length,
+c.total_foodstamp_utlnow,
+c.total_tanf_utlnow,
+c.edlevel,c.marstat,c.workexp,
+c.district,c.homeless,c.race,
+c.sex,c.rootrace,c.foreignbn,c.hh_counts
+FROM c6.return_hh_indcase_spells a
+LEFT JOIN c6.snap_cancelled_identify_hh_indcase_spells cancel
+ON a.recptno=cancel.recptno AND a.oldspell_end=cancel.end_date 
+LEFT JOIN c6.partial_evaluate_b b
+ON a.recptno=b.recptno AND a.oldspell_end=b.oldspell_end
+left JOIN c6.partial_evaluate_c c
+ON a.recptno=c.recptno AND a.oldspell_end=c.oldspell_end AND a.oldbene_type=c.oldbene_type
+WHERE a.oldSpell_end>='2010-01-01' AND a.oldSpell_end<='2017-12-31'
+order by a.recptno,a.oldbene_type,a.oldspell_end
 #+END_SRC
