@@ -1,8 +1,14 @@
 ## Welcome to Human Services Project!
 
-This project evaluate self-suffiency measurement that Human Services current use and develop machine learning models to predict risk of return for IL SNAP and TANF recipients and extract a better metrics for self-suffiency measurement. 
+Our project has two parts: validation of an existing measure for self-sufficiency, and the creation of a model to predict self-sufficiency. 
 
-### Part I Evaluation
+### Background information:
+some background on the metric DHS are using to validate this measure.
+In the late 1990s, the Illinois Department of Human Services, as part of welfare reform, was tasked with the goal of assististing TANF (Temporary Assistance for Needy Families) recipients to obtain employment and increased earnings to help move clients toward self-sufficiency. One way that this progress was measured was a metric, TANF Cases Cancelled Due to Earnings, which recorded which cases earned suffiienct income to move them above the income eligibility threshold for TANF benefits.
+Over the past 20 years, the size of the TANF population has fallen precipitously, and the size of the SNAP (Supplemental Nutritional Assistance Program) has grown much larger. Recently, a similar metric was constructed for SNAP clients, SNAP Cases Cancelled Due to Earnings, also measuring when cases cancel due to an income increase above the eligibilty threshold for SNAP. One aim of this metric is to measure the attainment of self-sufficiency, where a client is able to maintain sufficient income to not require or qualify for benefits any longer. (credit to Chris Pecaut,Matt Coyne, Illinois Department of Human Services)
+
+### Part I Evaluation:
+SNAP Case Cancelled Due to Earnings (SCDTE) and assess how well it captures self-sufficiency. This has several components: comparing the wage records of the with the DHS internal measure of reported earned income, assessing whether the Cases Cancelled return to benefits after cancellation, and comparing the Cases Cancelled group with the SNAP population as a whole.
 
 - Use spells data to look in the future return rate and speed
 - Link wage records and spell data to explore income and type of jobs at the time both before and after a spell is canceled 
@@ -11,8 +17,7 @@ This project evaluate self-suffiency measurement that Human Services current use
 
 - Cleaning the data
 - Manipulating the data
-- Create new /FeatureS/
-- Create new views of the data
+- Create new /Features/
 - Answering analytical questions
 
 ### Part II Machine Learning Models
