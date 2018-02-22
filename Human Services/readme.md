@@ -14,7 +14,7 @@ SNAP Case Cancelled Due to Earnings (SCDTE) and assess how well it captures self
 - Use spells data to look in the future return rate and speed
 - Link wage records and spell data to explore income and type of jobs at the time both before and after a spell is canceled 
 
-### Part II Machine Learning Models
+### Part II Machine Learning Models:
 Our second part of project is to predict a risk score at the time spell cancels. With the prediction score, we can achieve two goals: one is to develop a new measure to evaluate self-efficiency; second, to provide intervention to the spells who are most at risk at the time spell cancels. 
 
 - Predict the risk of return at a moment spell is canceled 
